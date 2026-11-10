@@ -63,7 +63,7 @@ footer{border-top:1px solid #ffffff16;padding:27px 0;color:var(--muted);font-siz
 <div>
 <div class="pill">✦ GAMING STORE · GABON</div>
 <h1>TON UNIVERS.<br><span class="gradient">TES RECHARGES.</span></h1>
-<p>Bienvenue chez stevy_eshop. Retrouve tes jeux préférés et prépare ta demande de recharge simplement. Prix affichés en FCFA ; les tarifs non confirmés sont annoncés avant paiement.</p>
+<p>Bienvenue chez stevy_eshop. Retrouve tes jeux préférés et prépare ta demande de recharge simplement. Prix affichés en FCFA ; les tarifs et la disponibilité sont confirmés sur WhatsApp.</p>
 <div class="actions"><a class="btn primary" href="#jeux">Explorer la boutique <span>→</span></a><a class="btn ghost" href="#fonctionnement">Comment ça marche</a></div>
 </div>
 <div class="hero-art"><div class="orb"><span>🎮</span></div><div class="art-caption">PLAY · RECHARGE · REPEAT</div></div>
@@ -97,7 +97,7 @@ footer{border-top:1px solid #ffffff16;padding:27px 0;color:var(--muted);font-siz
 <div class="how">
 <article class="step"><div class="num">ÉTAPE 01</div><h3>Choisis ton jeu</h3><p>Sélectionne le jeu et indique la recharge que tu souhaites obtenir.</p></article>
 <article class="step"><div class="num">ÉTAPE 02</div><h3>Envoie ta demande</h3><p>Renseigne ton identifiant joueur et un e-mail de contact si nécessaire.</p></article>
-<article class="step"><div class="num">ÉTAPE 03</div><h3>Confirme les détails</h3><p>Le vendeur confirme le prix, la disponibilité et les modalités avant tout paiement.</p></article>
+<article class="step"><div class="num">ÉTAPE 03</div><h3>Confirme les détails</h3><p>Le vendeur confirme le prix, la disponibilité et les modalités de commande sur WhatsApp.</p></article>
 </div>
 <div class="trust"><div>🛡️</div><div><strong>La sécurité de ton compte passe avant tout.</strong><p>stevy_eshop ne demande jamais ton mot de passe, ton code SMS, ton code e-mail ni ton code de vérification. Ne les communique à personne, même à un vendeur.</p></div></div>
 </section>
@@ -122,11 +122,10 @@ footer{border-top:1px solid #ffffff16;padding:27px 0;color:var(--muted);font-siz
 <div class="field"><label for="pack">Recharge souhaitée</label><select id="pack" name="pack" required><option value="">Choisis un pack</option></select></div>
 <div class="field"><label for="price">Prix à payer (FCFA)</label><input id="price" name="price" readonly placeholder="Le prix s'affichera ici"></div>
 <div class="field" id="secureInfo" style="display:none"><label>Connexion nécessaire ?</label><p style="margin:0;color:#b8c6dc;font-size:12px;line-height:1.5">Si le fournisseur officiel exige une connexion, le client sera dirigé vers sa page sécurisée. Ne saisis jamais ton mot de passe ou un code de vérification sur stevy_eshop.</p></div>
-<div class="field"><label for="paymentMethod">Mode de paiement</label><select id="paymentMethod" name="paymentMethod" required><option value="airtel">Airtel Money (simulation)</option></select><small>Pour les tests uniquement : aucun argent réel ne sera débité.</small></div>
-<button class="btn primary submit" type="submit">Lancer le paiement test →</button>
+<button class="btn primary submit" type="submit">Envoyer la commande sur WhatsApp →</button>
 <div class="confirmation" id="confirmation" role="status"></div>
 </form>
-<p class="safe-note">Sécurité : stevy_eshop ne collecte aucun mot de passe ni code de vérification. Si une authentification est requise, elle doit se faire uniquement sur le site ou l'application officielle du fournisseur. Les paiements sont en mode test uniquement. La recharge ne sera livrée qu’après confirmation du serveur.</p>
+<p class="safe-note">Sécurité : stevy_eshop ne collecte aucun mot de passe ni code de vérification. Si une authentification est requise, elle doit se faire uniquement sur le site ou l'application officielle du fournisseur. Aucun paiement en ligne n’est effectué sur ce site. Le vendeur te communiquera les modalités après réception de ta demande.</p>
 </div></div>
 <script>
 const modal=document.getElementById('modal');
@@ -141,41 +140,22 @@ document.getElementById('pack').addEventListener('change',updatePrice);
 function closeForm(){modal.classList.remove('show')}
 modal.addEventListener('click',e=>{if(e.target===modal)closeForm()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeForm()});
-async function waitForPayment(orderId,details){
-  const box=document.getElementById('confirmation');
-  box.textContent+='\n\nVérification du paiement en cours…';
-  for(let attempt=0;attempt<90;attempt++){
-    await new Promise(resolve=>setTimeout(resolve,4000));
-    try{
-      const response=await fetch('/.netlify/functions/order-status?id='+encodeURIComponent(orderId),{cache:'no-store'});
-      const status=await response.json();
-      if(!response.ok) throw new Error(status.error||'Vérification indisponible');
-      if(status.status==='success'){
-        const message=`Bonjour STEVY_ESHOP ! Mon paiement est confirmé.\n\nCommande : ${orderId}\nNom : ${details.customerName}\nJeu : ${details.game}\nID joueur : ${details.player}\nPack : ${details.pack}\nPrix : ${details.price}\nE-mail : ${details.email}\nTéléphone : ${details.phone}\n\nMerci de procéder à ma recharge.`;
-        const url='https://wa.me/24176436208?text='+encodeURIComponent(message);
-        box.textContent='Paiement confirmé par PayCentral ! Ouverture de WhatsApp…';
-        window.location.href=url;
-        return;
-      }
-      if(['failed','cancelled','refunded'].includes(status.status)){box.textContent='Le paiement n’a pas été confirmé ('+status.status+'). Aucune recharge ne sera effectuée. Contacte-nous si tu penses qu’il s’agit d’une erreur.';return;}
-    }catch(err){box.textContent='Paiement toujours en attente. La vérification automatique continue…';}
-  }
-  box.textContent='Le paiement est toujours en attente. Ne repaie pas immédiatement. Tu peux actualiser la page plus tard ou contacter STEVY_ESHOP avec le numéro de commande '+orderId+'.';
-}
-document.getElementById('orderForm').addEventListener('submit',async e=>{
+document.getElementById('orderForm').addEventListener('submit',e=>{
   e.preventDefault();
-  const d=new FormData(e.target);
-  const box=document.getElementById('confirmation');
-  box.style.display='block'; box.textContent='Création de la commande test…';
+  const form=e.target;
+  if(!form.reportValidity()) return;
+  const d=new FormData(form);
+  const selected=document.getElementById('pack').selectedOptions[0];
+  const price=selected?.dataset.price
+    ? Number(selected.dataset.price).toLocaleString('fr-FR')+' FCFA'
+    : 'À confirmer';
   const phone=String(d.get('phone')||'').replace(/[\s().-]/g,'');
   const gabonPhone=phone.startsWith('+241')?phone:(phone.startsWith('0')?'+241'+phone:'+241'+phone);
-  try {
-    const response=await fetch('/.netlify/functions/create-payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({game:d.get('game'),customerName:d.get('customerName'),player:d.get('player'),email:d.get('email'),phone:gabonPhone,pack:d.get('pack'),paymentMethod:'airtel'})});
-    const result=await response.json();
-    if(!response.ok) throw new Error(result.error||'Impossible de créer le paiement.');
-    box.textContent='Commande '+result.orderId+' créée. '+(result.message||'Regarde ton téléphone et confirme la demande dans le parcours officiel Airtel Money. Nous attendons la confirmation de PayCentral.');
-    await waitForPayment(result.orderId,{customerName:d.get('customerName'),game:d.get('game'),player:d.get('player'),email:d.get('email'),phone:gabonPhone,pack:d.get('pack'),price:d.get('price')});
-  } catch(err) { box.textContent=err.message+' Vérifie que le site et ses fonctions Netlify sont bien déployés.'; }
+  const message=`Bonjour STEVY_ESHOP ! Je souhaite passer une commande.\n\nNom : ${d.get('customerName')}\nJeu : ${d.get('game')}\nID joueur : ${d.get('player')}\nPack : ${d.get('pack')}\nPrix affiché : ${price}\nE-mail : ${d.get('email')}\nTéléphone : ${gabonPhone}\n\nMerci de confirmer la disponibilité et les modalités de commande.`;
+  const url='https://wa.me/24176436208?text='+encodeURIComponent(message);
+  document.getElementById('confirmation').style.display='block';
+  document.getElementById('confirmation').textContent='Ta demande va être envoyée sur WhatsApp. Aucun paiement ne sera effectué sur ce site.';
+  window.location.href=url;
 });
 </script>
 </body></html>
